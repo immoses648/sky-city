@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sky City</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            user-select: none;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .info-panel {
+            display: flex;
+            justify-content: space-between;
+            width: 400px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(20, 40px);
+            grid-gap: 1px;
+            border: 2px solid rgba(51, 51, 51, 0.2);
+            background-color: rgba(51, 51, 51, 0.2);
+            touch-action: none;
+        }
+
+        .cell {
+            width: 40px;
+            height: 40px;
+            background-color: #fff;
+            cursor: pointer;
+            transition: background-color 0.1s;
+        }
+
+        .cell.road, .cell.preview {
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+
+        .cell.preview {
+            opacity: 0.7;
+        }
+
+        .tool-btn {
+            padding: 8px 16px;
+            margin: 5px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .tool-btn.active {
+            background-color: #45a049;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+
+        #coin-display {
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .warning {
+            color: red;
+            margin-top: 10px;
+            visibility: hidden;
+        }
+
+        /* 道路图像类 */
+        .road-cross {
+            background-image: url("assets/images/road/cross.png");
+        }
+
+        .road-horizontal {
+            background-image: url("assets/images/road/horizontal.png");
+        }
+
+        .road-vertical {
+            background-image: url("assets/images/road/vertical.png");
+        }
+
+        .road-top-left {
+            background-image: url("assets/images/road/L-bend-vertical-reverse.png");
+        }
+
+        .road-top-right {
+            background-image: url("assets/images/road/L-bend.png");
+        }
+
+        .road-bottom-left {
+            background-image: url("assets/images/road/L-bend-mirror.png");
+        }
+
+        .road-bottom-right {
+            background-image: url("assets/images/road/L-bend-horizontal-reverse.png");
+        }
+
+        .road-t-top {
+            background-image: url("assets/images/road/T-junction-reverse.png");
+        }
+
+        .road-t-bottom {
+            background-image: url("assets/images/road/T-junction.png");
+        }
+
+        .road-t-left {
+            background-image: url("assets/images/road/T-junction-left.png");
+        }
+
+        .road-t-right {
+            background-image: url("assets/images/road/T-junction-right.png");
+        }
+
+        .road-s-right {
+            background-image: url("assets/images/road/left-end.png");
+        }
+
+        .road-s-left {
+            background-image: url("assets/images/road/right-end.png");
+        }
+
+        .road-s-top {
+            background-image: url("assets/images/road/bottom-end.png");
+        }
+
+        .road-s-bottom {
+            background-image: url("assets/images/road/top-end.png");
+        }
+
+        .road-road {
+            background-image: url("assets/images/road/end.png");
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="game-container">
+        <div class="info-panel">
+            <div>Tool: <span>{{ currentToolDisplay }}</span></div>
+            <div>Coins: <span id="coin-display">{{ coins }}</span></div>
+        </div>
+
+        <div>
+            <button class="tool-btn" :class="{ active: currentTool === 'road' }" @click="toggleRoadTool">
+                Road Paver (50 Coins/Tile)
+            </button>
+            <button class="tool-btn" @click="clearAllRoads">Clear All Roads</button>
+        </div>
+
+        <div class="warning" :style="{ visibility: showWarning ? 'visible' : 'hidden' }">
+            Coins are not enough!
+        </div>
+
+        <div class="grid-container">
+            <div
+                    v-for="(cell, index) in cells"
+                    :key="index"
+                    class="cell"
+                    :class="getCellClasses(index)"
+                    @mousedown="handleMouseDown(index)"
+                    @mouseenter="handleMouseEnter(index)"
+                    @touchstart="handleMouseDown(index)"
+                    @touchmove.prevent="handleTouchMove($event)"
+                    :data-index="index">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const {createApp, ref, computed, onMounted} = Vue;
+
+    createApp({
+        setup() {
+            const rows = 20, cols = 20;
+            const coins = ref(1000000);
+            const currentTool = ref(null);
+            const isBuilding = ref(false);
+            const isMouseDown = ref(false);
+            const previewCells = ref(new Set());
+            const builtRoads = ref(new Set());
+            const lastCell = ref(null);
+            const showWarning = ref(false);
+            const cells = ref(Array.from({length: rows * cols}));
+
+            const currentToolDisplay = computed(() => currentTool.value === 'road' ? 'Road Paver' : 'None');
+
+            const toggleRoadTool = () => {
+                currentTool.value = currentTool.value === 'road' ? null : 'road';
+            };
+
+            const clearAllRoads = () => {
+                coins.value += builtRoads.value.size * 50;
+                builtRoads.value.clear();
+                previewCells.value.clear();
+            };
+
+            const handleMouseDown = (index) => {
+                if (currentTool.value !== 'road') return;
+                isMouseDown.value = true;
+                isBuilding.value = true;
+                lastCell.value = index;
+                previewCells.value.add(index);
+            };
+
+            const handleMouseEnter = (index) => {
+                if (!isMouseDown.value || currentTool.value !== 'road') return;
+                if (index !== lastCell.value && !builtRoads.value.has(index)) {
+                    previewCells.value.add(index);
+                    lastCell.value = index;
+                }
+            };
+
+            const confirmBuild = () => {
+                const cost = previewCells.value.size * 50;
+                if (coins.value >= cost) {
+                    previewCells.value.forEach(i => builtRoads.value.add(i));
+                    coins.value -= cost;
+                    previewCells.value.clear();
+                    showWarning.value = false;
+                } else {
+                    previewCells.value.clear();
+                    showWarning.value = true;
+                    setTimeout(() => showWarning.value = false, 2000);
+                }
+            };
+
+            const handleTouchMove = (event) => {
+                const touch = event.touches[0];
+                const element = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (element?.classList.contains('cell')) {
+                    const index = parseInt(element.dataset.index);
+                    handleMouseEnter(index);
+                }
+            };
+
+            const getCellClasses = (index) => {
+                if (builtRoads.value.has(index)) return ['road', getRoadClass(index)];
+                if (previewCells.value.has(index)) return ['road', 'preview', getRoadClass(index)];
+                return [];
+            };
+
+            const getRoadClass = (index) => {
+                const row = Math.floor(index / cols);
+                const col = index % cols;
+                const isConnected = (i) => i !== null && (builtRoads.value.has(i) || previewCells.value.has(i));
+                const top = row > 0 ? index - cols : null;
+                const bottom = row < rows - 1 ? index + cols : null;
+                const left = col > 0 ? index - 1 : null;
+                const right = col < cols - 1 ? index + 1 : null;
+
+                let code = 0;
+                if (isConnected(top)) code |= 1;
+                if (isConnected(bottom)) code |= 2;
+                if (isConnected(left)) code |= 4;
+                if (isConnected(right)) code |= 8;
+
+                return {
+                    15: 'road-cross',
+                    12: 'road-horizontal',
+                    3: 'road-vertical',
+                    10: 'road-bottom-right',
+                    6: 'road-bottom-left',
+                    9: 'road-top-right',
+                    5: 'road-top-left',
+                    13: 'road-t-top',
+                    14: 'road-t-bottom',
+                    7: 'road-t-left',
+                    11: 'road-t-right',
+                    8: 'road-s-right',
+                    4: 'road-s-left',
+                    1: 'road-s-top',
+                    2: 'road-s-bottom',
+                }[code] || 'road-road';
+            };
+
+            onMounted(() => {
+                document.addEventListener('mouseup', () => {
+                    if (isMouseDown.value && isBuilding.value) confirmBuild();
+                    isMouseDown.value = false;
+                    isBuilding.value = false;
+                    lastCell.value = null;
+                });
+
+                document.addEventListener('touchend', () => {
+                    if (isBuilding.value) confirmBuild();
+                    isMouseDown.value = false;
+                    isBuilding.value = false;
+                    lastCell.value = null;
+                });
+            });
+
+            return {
+                coins,
+                currentTool,
+                currentToolDisplay,
+                cells,
+                showWarning,
+                toggleRoadTool,
+                clearAllRoads,
+                getCellClasses,
+                handleMouseDown,
+                handleMouseEnter,
+                handleTouchMove,
+            };
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>

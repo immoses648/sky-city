@@ -6,7 +6,6 @@
     <title>Sky City</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
-        /* 全局样式设置 */
         body {
             margin: 0;
             padding: 20px;
@@ -14,18 +13,15 @@
             flex-direction: column;
             align-items: center;
             font-family: Arial, sans-serif;
-            user-select: none; /* 禁止用户选择文本 */
-            -webkit-user-select: none; /* 兼容WebKit浏览器 */
+            user-select: none;
         }
 
-        /* 游戏主容器 */
         .game-container {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        /* 信息面板样式 */
         .info-panel {
             display: flex;
             justify-content: space-between;
@@ -36,189 +32,156 @@
             border-radius: 5px;
         }
 
-        /* 网格容器样式 */
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(20, 40px); /* 20列，每列20px */
-            grid-gap: 1px; /* 网格间隙 */
+            grid-template-columns: repeat(20, 40px);
+            grid-gap: 1px;
             border: 2px solid rgba(51, 51, 51, 0.2);
             background-color: rgba(51, 51, 51, 0.2);
-            touch-action: none; /* 禁用触摸默认行为 */
+            touch-action: none;
         }
 
-        /* 单元格基础样式 */
         .cell {
             width: 40px;
             height: 40px;
-            background-color: #ffffff; /* 地面颜色 */
+            background-color: #fff;
             cursor: pointer;
-            transition: background-color 0.1s; /* 颜色过渡效果 */
+            transition: background-color 0.1s;
+        }
+
+        .cell.road, .cell.preview {
             background-position: center;
             background-repeat: no-repeat;
             background-size: contain;
         }
 
-        /* 已铺设道路样式 */
-        .cell.road {
-            background-image: url("assets/images/road/end.png");
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: contain;
-        }
-
-        .cell.road-road {
-            background-image: url("assets/images/road/end.png");
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: contain;
-        }
-
-        .cell.road-horizontal {
-            background-image: url("assets/images/road/horizontal.png");
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: contain;
-        }
-
-        .cell.road-vertical {
-            background-image: url("assets/images/road/vertical.png");
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: contain;
-        }
-
-        /* 十字路口 */
-        .cell.road-cross {
-            background-image: url("assets/images/road/cross.png");
-        }
-
-        /* 左上转角 */
-        .cell.road-top-left {
-            background-image: url("assets/images/road/L-bend-vertical-reverse.png");
-        }
-
-        /* 右上转角 */
-        .cell.road-top-right {
-            background-image: url("assets/images/road/L-bend.png");
-        }
-
-        /* 左下转角 */
-        .cell.road-bottom-left {
-            background-image: url("assets/images/road/L-bend-mirror.png");
-        }
-
-        /* 右下转角 */
-        .cell.road-bottom-right {
-            background-image: url("assets/images/road/L-bend-horizontal-reverse.png");
-        }
-
-        /* T型路口 */
-        .cell.road-t-top {
-            background-image: url("assets/images/road/T-junction-reverse.png");
-        }
-
-        .cell.road-t-bottom {
-            background-image: url("assets/images/road/T-junction.png");
-        }
-
-        .cell.road-t-left {
-            background-image: url("assets/images/road/T-junction-left.png");
-        }
-
-        .cell.road-t-right {
-            background-image: url("assets/images/road/T-junction-right.png");
-        }
-
-        .cell.road-s-right {
-            background-image: url("assets/images/road/left-end.png");
-        }
-
-        .cell.road-s-left {
-            background-image: url("assets/images/road/right-end.png");
-        }
-
-        .cell.road-s-top {
-            background-image: url("assets/images/road/bottom-end.png");
-        }
-
-        .cell.road-s-bottom {
-            background-image: url("assets/images/road/top-end.png");
-        }
-
-        /* 道路预览样式 */
         .cell.preview {
-            opacity: 0.7; /* 半透明效果 */
+            opacity: 0.7;
         }
 
-        /* 工具按钮样式 */
         .tool-btn {
             padding: 8px 16px;
             margin: 5px;
             cursor: pointer;
-            background-color: #4CAF50; /* 绿色按钮 */
+            background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 4px;
         }
 
-        /* 激活状态的工具按钮 */
         .tool-btn.active {
             background-color: #45a049;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* 阴影效果 */
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
         }
 
-        /* 硬币显示样式 */
         #coin-display {
             font-weight: bold;
-            color: #FFD700; /* 金色 */
+            color: #FFD700;
         }
 
-        /* 警告信息样式 */
         .warning {
             color: red;
             margin-top: 10px;
-            visibility: hidden; /* 默认隐藏 */
+            visibility: hidden;
+        }
+
+        /* 道路图像类 */
+        .road-cross {
+            background-image: url("assets/images/road/cross.png");
+        }
+
+        .road-horizontal {
+            background-image: url("assets/images/road/horizontal.png");
+        }
+
+        .road-vertical {
+            background-image: url("assets/images/road/vertical.png");
+        }
+
+        .road-top-left {
+            background-image: url("assets/images/road/L-bend-vertical-reverse.png");
+        }
+
+        .road-top-right {
+            background-image: url("assets/images/road/L-bend.png");
+        }
+
+        .road-bottom-left {
+            background-image: url("assets/images/road/L-bend-mirror.png");
+        }
+
+        .road-bottom-right {
+            background-image: url("assets/images/road/L-bend-horizontal-reverse.png");
+        }
+
+        .road-t-top {
+            background-image: url("assets/images/road/T-junction-reverse.png");
+        }
+
+        .road-t-bottom {
+            background-image: url("assets/images/road/T-junction.png");
+        }
+
+        .road-t-left {
+            background-image: url("assets/images/road/T-junction-left.png");
+        }
+
+        .road-t-right {
+            background-image: url("assets/images/road/T-junction-right.png");
+        }
+
+        .road-s-right {
+            background-image: url("assets/images/road/left-end.png");
+        }
+
+        .road-s-left {
+            background-image: url("assets/images/road/right-end.png");
+        }
+
+        .road-s-top {
+            background-image: url("assets/images/road/bottom-end.png");
+        }
+
+        .road-s-bottom {
+            background-image: url("assets/images/road/top-end.png");
+        }
+
+        .road-road {
+            background-image: url("assets/images/road/end.png");
         }
     </style>
 </head>
 <body>
 <div id="app">
     <div class="game-container">
-        <!-- 信息面板 -->
         <div class="info-panel">
             <div>Tool: <span>{{ currentToolDisplay }}</span></div>
             <div>Coins: <span id="coin-display">{{ coins }}</span></div>
         </div>
 
-        <!-- 工具按钮区域 -->
         <div>
-            <button
-                    class="tool-btn"
-                    :class="{ active: currentTool === 'road' }"
-                    @click="toggleRoadTool"
-            >
+            <button class="tool-btn" :class="{ active: currentTool === 'road' }" @click="toggleRoadTool">
                 Road Paver (50 Coins/Tile)
             </button>
             <button class="tool-btn" @click="clearAllRoads">Clear All Roads</button>
         </div>
 
-        <!-- 警告信息 -->
         <div class="warning" :style="{ visibility: showWarning ? 'visible' : 'hidden' }">
             Coins are not enough!
         </div>
 
-        <!-- 网格容器 -->
-        <div class="grid-container" id="grid">
+        <div class="grid-container">
             <div
                     v-for="(cell, index) in cells"
                     :key="index"
                     class="cell"
                     :class="getCellClasses(index)"
-                    @mousedown="onCellMouseDown(index)"
-                    @mouseover="onCellMouseOver(index)"
-                    @touchstart="onCellTouchStart(index)"
-                    @touchmove.prevent="onCellTouchMove($event)"
-            ></div>
+                    @mousedown="handleMouseDown(index)"
+                    @mouseenter="handleMouseEnter(index)"
+                    @touchstart="handleMouseDown(index)"
+                    @touchmove.prevent="handleTouchMove($event)"
+                    :data-index="index">
+            </div>
         </div>
     </div>
 </div>
@@ -228,167 +191,90 @@
 
     createApp({
         setup() {
-            // 游戏状态
-            const rows = ref(20);
-            const cols = ref(20);
+            const rows = 20, cols = 20;
             const coins = ref(1000000);
             const currentTool = ref(null);
             const isBuilding = ref(false);
+            const isMouseDown = ref(false);
             const previewCells = ref(new Set());
             const builtRoads = ref(new Set());
             const lastCell = ref(null);
             const showWarning = ref(false);
-            const cells = ref(Array.from({length: 20 * 20}, (_, i) => ({index: i})));
+            const cells = ref(Array.from({length: rows * cols}));
 
-            // 计算属性
-            const currentToolDisplay = computed(() => {
-                return currentTool.value === 'road' ? 'Road Paver' : 'None';
-            });
+            const currentToolDisplay = computed(() => currentTool.value === 'road' ? 'Road Paver' : 'None');
 
-            // 方法
             const toggleRoadTool = () => {
-                if (currentTool.value === 'road') {
-                    currentTool.value = null;
-                } else {
-                    currentTool.value = 'road';
-                }
+                currentTool.value = currentTool.value === 'road' ? null : 'road';
             };
 
             const clearAllRoads = () => {
-                const roadsToUpdate = new Set();
-
-                // 收集所有需要更新的相邻道路
-                builtRoads.value.forEach(index => {
-                    roadsToUpdate.add(index);
-                    const row = Math.floor(index / cols.value);
-                    const col = index % cols.value;
-
-                    if (row > 0) roadsToUpdate.add(index - cols.value);
-                    if (row < rows.value - 1) roadsToUpdate.add(index + cols.value);
-                    if (col > 0) roadsToUpdate.add(index - 1);
-                    if (col < cols.value - 1) roadsToUpdate.add(index + 1);
-                });
-
-                // 返还硬币
                 coins.value += builtRoads.value.size * 50;
                 builtRoads.value.clear();
                 previewCells.value.clear();
-
-                // 更新相邻道路样式
-                roadsToUpdate.forEach(index => {
-                    if (builtRoads.value.has(index)) {
-                        setRoadStyle(index);
-                    }
-                });
             };
 
-            const onCellMouseDown = (index) => {
-                if (currentTool.value === 'road') {
-                    isBuilding.value = true;
-                    togglePreview(index);
+            const handleMouseDown = (index) => {
+                if (currentTool.value !== 'road') return;
+                isMouseDown.value = true;
+                isBuilding.value = true;
+                lastCell.value = index;
+                previewCells.value.add(index);
+            };
+
+            const handleMouseEnter = (index) => {
+                if (!isMouseDown.value || currentTool.value !== 'road') return;
+                if (index !== lastCell.value && !builtRoads.value.has(index)) {
+                    previewCells.value.add(index);
                     lastCell.value = index;
-                }
-            };
-
-            const onCellMouseOver = (index) => {
-                if (isBuilding.value && currentTool.value === 'road' && index !== lastCell.value) {
-                    togglePreview(index);
-                    lastCell.value = index;
-                }
-            };
-
-            const onCellTouchStart = (index) => {
-                if (currentTool.value === 'road') {
-                    isBuilding.value = true;
-                    togglePreview(index);
-                    lastCell.value = index;
-                }
-            };
-
-            const onCellTouchMove = (event) => {
-                if (currentTool.value === 'road' && isBuilding.value) {
-                    const touch = event.touches[0];
-                    const element = document.elementFromPoint(touch.clientX, touch.clientY);
-                    if (element && element.classList.contains('cell')) {
-                        const index = parseInt(element.dataset.index);
-                        if (index !== lastCell.value) {
-                            togglePreview(index);
-                            lastCell.value = index;
-                        }
-                    }
-                }
-            };
-
-            const togglePreview = (index) => {
-                if (!builtRoads.value.has(index)) {
-                    if (previewCells.value.has(index)) {
-                        previewCells.value.delete(index);
-                    } else {
-                        previewCells.value.add(index);
-                    }
                 }
             };
 
             const confirmBuild = () => {
                 const cost = previewCells.value.size * 50;
-
                 if (coins.value >= cost) {
-                    previewCells.value.forEach(index => {
-                        builtRoads.value.add(index);
-                        setRoadStyle(index);
-                    });
-
+                    previewCells.value.forEach(i => builtRoads.value.add(i));
                     coins.value -= cost;
                     previewCells.value.clear();
-                    hideWarning();
+                    showWarning.value = false;
                 } else {
                     previewCells.value.clear();
-                    showWarningMessage();
+                    showWarning.value = true;
+                    setTimeout(() => showWarning.value = false, 2000);
                 }
             };
 
-            const showWarningMessage = () => {
-                showWarning.value = true;
-                setTimeout(hideWarning, 2000);
-            };
-
-            const hideWarning = () => {
-                showWarning.value = false;
+            const handleTouchMove = (event) => {
+                const touch = event.touches[0];
+                const element = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (element?.classList.contains('cell')) {
+                    const index = parseInt(element.dataset.index);
+                    handleMouseEnter(index);
+                }
             };
 
             const getCellClasses = (index) => {
-                const classes = [];
-
-                if (builtRoads.value.has(index)) {
-                    classes.push('road');
-                    classes.push(getRoadClass(index));
-                } else if (previewCells.value.has(index)) {
-                    classes.push('preview');
-                    classes.push(getRoadClass(index));
-                }
-
-                return classes.join(' ');
+                if (builtRoads.value.has(index)) return ['road', getRoadClass(index)];
+                if (previewCells.value.has(index)) return ['road', 'preview', getRoadClass(index)];
+                return [];
             };
 
             const getRoadClass = (index) => {
-                const row = Math.floor(index / cols.value);
-                const col = index % cols.value;
-
-                const top = row > 0 ? index - cols.value : null;
-                const bottom = row < rows.value - 1 ? index + cols.value : null;
-                const left = col > 0 ? index - 1 : null;
-                const right = col < cols.value - 1 ? index + 1 : null;
-
+                const row = Math.floor(index / cols);
+                const col = index % cols;
                 const isConnected = (i) => i !== null && (builtRoads.value.has(i) || previewCells.value.has(i));
+                const top = row > 0 ? index - cols : null;
+                const bottom = row < rows - 1 ? index + cols : null;
+                const left = col > 0 ? index - 1 : null;
+                const right = col < cols - 1 ? index + 1 : null;
 
-                // 使用位标志编码：上 1，下 2，左 4，右 8
                 let code = 0;
                 if (isConnected(top)) code |= 1;
                 if (isConnected(bottom)) code |= 2;
                 if (isConnected(left)) code |= 4;
                 if (isConnected(right)) code |= 8;
 
-                const roadMap = {
+                return {
                     15: 'road-cross',
                     12: 'road-horizontal',
                     3: 'road-vertical',
@@ -404,98 +290,37 @@
                     4: 'road-s-left',
                     1: 'road-s-top',
                     2: 'road-s-bottom',
-                };
-
-                return roadMap[code] || 'road-road';
+                }[code] || 'road-road';
             };
 
-
-            const setRoadStyle = (index) => {
-                // 在Vue中，样式是通过类名自动应用的，所以这里只需要触发更新
-                // 更新相邻道路
-                updateAdjacentRoads(index);
-            };
-
-            const updateAdjacentRoads = (index) => {
-                const row = Math.floor(index / cols.value);
-                const col = index % cols.value;
-
-                // 检查并更新四个方向的相邻道路
-                if (row > 0) {
-                    const topIndex = index - cols.value;
-                    if (builtRoads.value.has(topIndex) || previewCells.value.has(topIndex)) {
-                        // 触发响应式更新
-                        const temp = [...builtRoads.value];
-                        builtRoads.value = new Set(temp);
-                    }
-                }
-                if (row < rows.value - 1) {
-                    const bottomIndex = index + cols.value;
-                    if (builtRoads.value.has(bottomIndex) || previewCells.value.has(bottomIndex)) {
-                        const temp = [...builtRoads.value];
-                        builtRoads.value = new Set(temp);
-                    }
-                }
-                if (col > 0) {
-                    const leftIndex = index - 1;
-                    if (builtRoads.value.has(leftIndex) || previewCells.value.has(leftIndex)) {
-                        const temp = [...builtRoads.value];
-                        builtRoads.value = new Set(temp);
-                    }
-                }
-                if (col < cols.value - 1) {
-                    const rightIndex = index + 1;
-                    if (builtRoads.value.has(rightIndex) || previewCells.value.has(rightIndex)) {
-                        const temp = [...builtRoads.value];
-                        builtRoads.value = new Set(temp);
-                    }
-                }
-            };
-
-            // 鼠标释放事件
-            const onMouseUp = () => {
-                if (isBuilding.value && currentTool.value === 'road') {
-                    confirmBuild();
-                }
-                isBuilding.value = false;
-                lastCell.value = null;
-            };
-
-            // 触摸结束事件
-            const onTouchEnd = () => {
-                if (isBuilding.value && currentTool.value === 'road') {
-                    confirmBuild();
-                }
-                isBuilding.value = false;
-                lastCell.value = null;
-            };
-
-            // 生命周期钩子
             onMounted(() => {
-                document.addEventListener('mouseup', onMouseUp);
-                document.addEventListener('touchend', onTouchEnd);
+                document.addEventListener('mouseup', () => {
+                    if (isMouseDown.value && isBuilding.value) confirmBuild();
+                    isMouseDown.value = false;
+                    isBuilding.value = false;
+                    lastCell.value = null;
+                });
+
+                document.addEventListener('touchend', () => {
+                    if (isBuilding.value) confirmBuild();
+                    isMouseDown.value = false;
+                    isBuilding.value = false;
+                    lastCell.value = null;
+                });
             });
 
             return {
-                rows,
-                cols,
                 coins,
                 currentTool,
-                isBuilding,
-                previewCells,
-                builtRoads,
-                lastCell,
-                showWarning,
-                cells,
                 currentToolDisplay,
+                cells,
+                showWarning,
                 toggleRoadTool,
                 clearAllRoads,
-                onCellMouseDown,
-                onCellMouseOver,
-                onCellTouchStart,
-                onCellTouchMove,
                 getCellClasses,
-                setRoadStyle
+                handleMouseDown,
+                handleMouseEnter,
+                handleTouchMove,
             };
         }
     }).mount('#app');

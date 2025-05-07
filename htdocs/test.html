@@ -40,9 +40,13 @@
             display: grid;
             grid-template-columns: repeat(20, 40px); /* 20列，每列20px */
             grid-gap: 1px; /* 网格间隙 */
-            border: 2px solid #333;
-            background-color: #333;
+            border: 2px solid #838383;
+            background-color: #8f8f8f;
             touch-action: none; /* 禁用触摸默认行为 */
+        }
+
+        .road-tool-hover .cell:hover{
+            /*background-image: url("assets/images/road/end.png");*/
         }
 
         /* 单元格基础样式 */
@@ -152,12 +156,23 @@
         /* 道路预览样式 */
         .cell.preview {
             /*background-color: #888;*/
-            opacity: 0.7; /* 半透明效果 */
+            /*opacity: 0.4; !* 半透明效果 *!*/
             /*background-assets: url("assets/road/end.png");*/
             /*background-position: center;*/
             /*background-repeat: no-repeat;*/
             /*background-size: contain;*/
         }
+
+        .clear-tool-hover .cell:hover{
+            background-color: #ed5f5f; /* 背景颜色 */
+            transition: 0.3s;
+        }
+
+        .cell:hover{
+            opacity: 0.7; /* 半透明效果 */
+        }
+
+
 
         /* 工具按钮样式 */
         .tool-btn {
@@ -188,6 +203,52 @@
             margin-top: 10px;
             visibility: hidden; /* 默认隐藏 */
         }
+
+        .house {
+            position: relative;
+        }
+
+        .house::after,.house::before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .house::after {
+            background-image: url("assets/images/building/house_1.png");
+            background-size: contain;
+            z-index: 1;
+        }
+
+        .house-sun::before{
+            background-image: url("assets/images/building/sun.png");
+            background-size: 40%;
+            z-index: 2;
+        }
+
+        .house-star::before{
+            background-image: url("assets/images/building/star.png");
+            background-size: 40%;
+            z-index: 2;
+        }
+
+        .house-moon::before{
+            background-image: url("assets/images/building/moon.png");
+            background-size: 40%;
+            z-index: 2;
+        }
+
+        .birth-house{
+            background-repeat: no-repeat;
+            background-position: center;
+            background-image: url("assets/images/building/house_2.png");
+            background-size: 70%;
+            bottom: -20px;
+        }
+
     </style>
 </head>
 <body>
@@ -201,7 +262,9 @@
 
     <!-- 工具按钮区域 -->
     <div>
+        <button class="tool-btn" id="start-game-btn">开始游戏</button>
         <button class="tool-btn" id="road-tool">道路工具 (50硬币/格)</button>
+        <button class="tool-btn" id="clear-tool">拆除工具</button>
         <button class="tool-btn" id="clear-btn">清除所有道路</button>
     </div>
 
@@ -231,6 +294,9 @@
     const roadToolBtn = document.getElementById('road-tool'); // 道路工具按钮
     const clearBtn = document.getElementById('clear-btn'); // 清除按钮
     const warningMessage = document.getElementById('warning-message'); // 警告信息
+    const startGameBtn = document.getElementById('start-game-btn'); // 开始游戏按钮
+    const clearToolBtn = document.getElementById('clear-tool'); // 拆除工具按钮
+    const body = document.querySelector('body');
 
     // ========== 网格创建 ==========
     const rows = 20; // 行数
@@ -252,24 +318,70 @@
         grid.appendChild(cell);
     }
 
+    startGameBtn.addEventListener('click', () => {
+        // 开始游戏
+        const house_type = ['house-sun',"house-star","house-moon"]
+
+        document.querySelectorAll('.cell.house').forEach(cell => {
+            // cell.classList.remove('road', 'road-horizontal', 'road-vertical', 'road-cross', 'road-top-left', 'road-top-right', 'road-bottom-left', 'road-bottom-right', 'road-t-top', 'road-t-bottom', 'road-t-left', 'road-t-right','road-s-top','road-s-left','road-s-right','road-s-bottom','road-road');
+            cell.className = '';
+            cell.classList.add('cell');
+        });
+
+        for (let i = 0; i < 3; i++){
+            const index = Math.floor(Math.random()*(cellCount-cols));
+            const cell = document.querySelector(`.cell[data-index="${index}"]`);
+            const row = Math.floor(index / cols);
+            const col = index % cols;
+            let hasTop = row > 0 && document.querySelector(`.cell[data-index="${index - cols}"]`).classList.contains('house');
+            let hasBottom = row < rows-1 && document.querySelector(`.cell[data-index="${index + cols}"]`).classList.contains('house');
+            let hasHouse = document.querySelector(`.cell[data-index="${index + cols}"]`).classList.contains('house');
+            if (hasTop || hasBottom || hasHouse){
+                i -= 1;
+                continue
+            }
+            cell.classList.add('house',house_type[i]);
+        }
+
+
+    })
+
+    function creatBirthHouse(){
+        const house_box = document.createElement('div');
+
+    }
+
     // ========== 工具按钮事件 ==========
     // 道路工具按钮点击事件
     roadToolBtn.addEventListener('click', () => {
+
         if (gameState.currentTool === 'road') {
             // 如果已经是道路工具，则取消选择
             gameState.currentTool = null;
-            roadToolBtn.classList.remove('active');
             currentToolDisplay.textContent = '无';
+            body.classList.remove('road-tool-hover','clear-tool-hover');
         } else {
             // 选择道路工具
             gameState.currentTool = 'road';
-            roadToolBtn.classList.add('active');
             currentToolDisplay.textContent = '道路工具';
+            body.classList.remove('clear-tool-hover');
+            body.classList.add('road-tool-hover');
         }
     });
 
-    roadToolBtn.addEventListener('click', () => {
-
+    clearToolBtn.addEventListener('click', () => {
+        if (gameState.currentTool === 'clear') {
+            // 如果已经是道路工具，则取消选择
+            gameState.currentTool = null;
+            currentToolDisplay.textContent = '无';
+            body.classList.remove('clear-tool-hover','road-tool-hover');
+        }else{
+            // 选择道路工具
+            gameState.currentTool = 'clear';
+            currentToolDisplay.textContent = '拆除工具';
+            body.classList.remove('road-tool-hover');
+            body.classList.add('clear-tool-hover');
+        }
     })
 
     // 修改清除按钮事件
@@ -290,7 +402,9 @@
 
         // 清除所有道路
         document.querySelectorAll('.cell.road').forEach(cell => {
-            cell.classList.remove('road', 'road-horizontal', 'road-vertical', 'road-cross', 'road-top-left', 'road-top-right', 'road-bottom-left', 'road-bottom-right', 'road-t-top', 'road-t-bottom', 'road-t-left', 'road-t-right','road-s-top','road-s-left','road-s-right','road-s-bottom','road-road');
+            // cell.classList.remove('road', 'road-horizontal', 'road-vertical', 'road-cross', 'road-top-left', 'road-top-right', 'road-bottom-left', 'road-bottom-right', 'road-t-top', 'road-t-bottom', 'road-t-left', 'road-t-right','road-s-top','road-s-left','road-s-right','road-s-bottom','road-road');
+            cell.className = '';
+            cell.classList.add('cell');
         });
 
         // 返还硬币
@@ -324,7 +438,20 @@
             gameState.isBuilding = true; // 设置为建造状态
             togglePreview(e.target); // 切换预览状态
             gameState.lastCell = e.target; // 记录最后操作的单元格
+            body.classList.remove('road-tool-hover');
         }
+        if (e.target.classList.contains('cell') && e.target.classList.contains('road') &&  gameState.currentTool === 'clear') {
+            e.preventDefault(); // 防止拖动行为
+            // gameState.isBuilding = true; // 设置为建造状态
+            e.target.className = '';
+            e.target.classList.add('cell');
+            gameState.lastCell = e.target; // 记录最后操作的单元格
+            gameState.coins += 50;
+            updateCoinDisplay();
+            gameState.builtRoads.delete(e.target.dataset.index);
+            updateAdjacentRoads(Number(e.target.dataset.index));
+        }
+
     });
 
     // 修改鼠标释放事件
@@ -332,6 +459,8 @@
         if (gameState.isBuilding && gameState.currentTool === 'road') {
             // 计算总成本
             const cost = gameState.previewCells.size * 50;
+            body.classList.add('road-tool-hover');
+            // alert("总成本：" + cost);
 
             if (gameState.coins >= cost) {
                 // 如果硬币足够，确认建造
@@ -387,12 +516,13 @@
         const index = cell.dataset.index;
 
         // 只有不是已建造道路的单元格才能预览
-        if (!cell.classList.contains('road')) {
+        if (!cell?.matches('.road,.house')) {
             cell.classList.add('preview');
             setRoadStyle(cell)
             gameState.previewCells.add(index);
         }
     }
+
 
     /**
      * 清除所有预览的单元格
@@ -437,22 +567,21 @@
         const col = index % cols;
 
         // 检查四个方向的相邻单元格
-        let hasTop = row > 0 && document.querySelector(`.cell[data-index="${index - cols}"]`).classList.contains('road');
-        if (!hasTop) {
-            hasTop = row > 0 && document.querySelector(`.cell[data-index="${index - cols}"]`).classList.contains('preview');
-        }
-        let hasBottom = row < rows - 1 && document.querySelector(`.cell[data-index="${index + cols}"]`).classList.contains('road');
-        if (!hasBottom) {
-            hasBottom = row < rows - 1 && document.querySelector(`.cell[data-index="${index + cols}"]`).classList.contains('preview');
-        }
-        let hasLeft = col > 0 && document.querySelector(`.cell[data-index="${index - 1}"]`).classList.contains('road');
-        if (!hasLeft) {
-            hasLeft = col > 0 && document.querySelector(`.cell[data-index="${index - 1}"]`).classList.contains('preview');
-        }
-        let hasRight = col < cols - 1 && document.querySelector(`.cell[data-index="${index + 1}"]`).classList.contains('road');
-        if (!hasRight) {
-            hasRight = col < cols - 1 && document.querySelector(`.cell[data-index="${index + 1}"]`).classList.contains('preview');
-        }
+        const getCell = (index) => document.querySelector(`.cell[data-index="${index}"]`);
+
+        let hasTop = row > 0 && (
+            getCell(index - cols)?.matches('.road, .preview, .house')
+        );
+        let hasBottom = row < rows - 1 && (
+            getCell(index + cols)?.matches('.road, .preview')
+        );
+
+        let hasLeft = col > 0 && (
+            getCell(index - 1)?.matches('.road, .preview')
+        );
+        let hasRight = col < cols - 1 && (
+            getCell(index + 1)?.matches('.road, .preview')
+        );
         console.log(hasTop, hasBottom, hasLeft, hasRight);
         // 确定应该使用哪个样式类
         let newClass = 'road-road'; // 默认
